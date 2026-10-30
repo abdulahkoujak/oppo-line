@@ -203,14 +203,40 @@ function readIncomingFromUrl() {
   window.history.replaceState(null, '', window.location.pathname);
 }
 
+/** The service worker saves each incoming call here, because iOS can drop the tap's message and URL. */
+const PENDING_CACHE = 'oppo-line-pending';
+const PENDING_KEY = 'pending-call';
+
+async function readPendingCall() {
+  if (!('caches' in window)) return;
+  try {
+    const cache = await caches.open(PENDING_CACHE);
+    const hit = await cache.match(PENDING_KEY);
+    if (!hit) return;
+    const call = await hit.json();
+    await cache.delete(PENDING_KEY);
+    // Already ringing or on a call: this saved copy is the same call, so just drop it.
+    if (conversation || state.phase === 'incoming' || state.phase === 'connecting') return;
+    showIncoming({ reason: call?.reason || null, ts: call?.ts || null });
+  } catch {
+    // No saved call or unreadable: nothing to show.
+  }
+}
+
+// Listen before registering, so a message sent while the app wakes is not lost.
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('message', (event) => {
+    if (event.data?.type === 'incoming') showIncoming(event.data);
+  });
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') readPendingCall(); });
+window.addEventListener('pageshow', () => readPendingCall());
+
 /** @returns {Promise<{ registration: ServiceWorkerRegistration|null, swError: string|null }>} */
 async function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return { registration: null, swError: 'service workers unavailable' };
   try {
     const registration = await navigator.serviceWorker.register('sw.js');
-    navigator.serviceWorker.addEventListener('message', (event) => {
-      if (event.data?.type === 'incoming') showIncoming(event.data);
-    });
     return { registration, swError: null };
   } catch (error) {
     const swError = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
@@ -228,4 +254,5 @@ window.addEventListener('pagehide', () => { if (conversation) conversation.endSe
 
 render();
 readIncomingFromUrl();
+readPendingCall();
 registerServiceWorker().then(({ registration, swError }) => initPush({ registration, swError, dialog: els.settings }));

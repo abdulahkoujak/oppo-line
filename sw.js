@@ -1,6 +1,15 @@
 // Service worker: turns a push from Oppo into a "calling" notification,
 // and keeps the app shell cached so the icon opens fast.
-const CACHE = 'oppo-line-v2';
+const CACHE = 'oppo-line-v3';
+// Holds the latest incoming call, so the app can show it however iOS opens it.
+const PENDING_CACHE = 'oppo-line-pending';
+const PENDING_KEY = 'pending-call';
+
+/** @param {{ reason: string, ts: string }} call */
+async function savePendingCall(call) {
+  const cache = await caches.open(PENDING_CACHE);
+  await cache.put(PENDING_KEY, new Response(JSON.stringify(call), { headers: { 'Content-Type': 'application/json' } }));
+}
 const SHELL = [
   './',
   'index.html',
@@ -28,7 +37,7 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((key) => key !== CACHE).map((key) => caches.delete(key))))
+      .then((keys) => Promise.all(keys.filter((key) => key !== CACHE && key !== PENDING_CACHE).map((key) => caches.delete(key))))
       .then(() => self.clients.claim()),
   );
 });
@@ -64,7 +73,8 @@ self.addEventListener('push', (event) => {
   const payload = readPayload(event.data);
   const reason = typeof payload.body === 'string' ? payload.body.slice(0, 300) : '';
   const ts = typeof payload.ts === 'string' ? payload.ts : new Date().toISOString();
-  event.waitUntil(
+  event.waitUntil(Promise.all([
+    savePendingCall({ reason, ts }),
     self.registration.showNotification(payload.title || 'Oppo is calling', {
       body: reason || 'Tap to answer',
       tag: 'oppo-call',
@@ -74,7 +84,7 @@ self.addEventListener('push', (event) => {
       badge: 'icons/icon-192.png',
       data: { reason, ts },
     }),
-  );
+  ]));
 });
 
 self.addEventListener('notificationclick', (event) => {
@@ -86,6 +96,8 @@ self.addEventListener('notificationclick', (event) => {
   if (ts) url.searchParams.set('ts', ts);
 
   event.waitUntil((async () => {
+    // iOS may drop the message or ignore the URL, so the app also reads this on open.
+    if (ts) await savePendingCall({ reason, ts });
     const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
     const open = windows.find((client) => client.url.startsWith(self.registration.scope));
     if (open) {
