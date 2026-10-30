@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Oppo Line</title>
+  <meta name="description" content="Live voice line to Oppo, your operations manager.">
+  <meta name="theme-color" content="#f3ece0" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#16130f" media="(prefers-color-scheme: dark)">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Oppo">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="stylesheet" href="app.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body data-state="idle">
+  <header class="topbar">
+    <p class="line-label"><span class="lamp" aria-hidden="true"></span>Operations line</p>
+    <button class="icon-btn" id="settings-btn" type="button" aria-label="Settings" aria-haspopup="dialog">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="16" cy="7" r="2.2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="8" cy="17" r="2.2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+    </button>
+  </header>
+
+  <main class="stage">
+    <section class="identity" aria-labelledby="who">
+      <h1 id="who">Oppo</h1>
+      <p class="status" id="status" role="status" aria-live="polite">Ready when you are</p>
+      <p class="timer" id="timer" aria-hidden="true">00:00</p>
+      <p class="reason" id="reason" hidden></p>
+    </section>
+
+    <div class="dial" id="dial" aria-hidden="true">
+      <span class="ring ring-agent"></span>
+      <span class="ring ring-user"></span>
+      <span class="ring ring-static"></span>
+      <span class="core"></span>
+    </div>
+
+    <section class="captions" aria-label="Live captions">
+      <p class="caption" id="caption" aria-live="off"></p>
+    </section>
+  </main>
+
+  <footer class="controls">
+    <div class="row row-idle">
+      <button class="btn btn-call" id="call-btn" type="button">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6.6 3.5 9 3l1.6 4.2-2 1.4a11 11 0 0 0 6.8 6.8l1.4-2L21 15l-.5 2.4A2.5 2.5 0 0 1 18 19.5 15.5 15.5 0 0 1 4.5 6 2.5 2.5 0 0 1 6.6 3.5Z" fill="currentColor"/></svg>
+        Call Oppo
+      </button>
+    </div>
+    <div class="row row-incoming">
+      <button class="btn btn-decline" id="decline-btn" type="button">Decline</button>
+      <button class="btn btn-call btn-answer" id="answer-btn" type="button">Answer</button>
+    </div>
+    <div class="row row-live">
+      <button class="btn btn-ghost" id="mute-btn" type="button" aria-pressed="false">Mute</button>
+      <button class="btn btn-end" id="end-btn" type="button">End call</button>
+    </div>
+  </footer>
+
+  <dialog class="sheet" id="settings" aria-labelledby="settings-title">
+    <form method="dialog" class="sheet-head">
+      <h2 id="settings-title">Let Oppo call you</h2>
+      <button class="icon-btn" value="close" aria-label="Close settings">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+    </form>
+    <div class="sheet-body">
+      <ol class="steps" id="push-steps">
+        <li id="step-install">
+          <strong>Add to Home Screen.</strong>
+          In Safari tap <em>Share</em>, then <em>Add to Home Screen</em>, then open Oppo from the new icon.
+        </li>
+        <li id="step-allow">
+          <strong>Allow notifications.</strong>
+          <button class="btn btn-small" id="push-btn" type="button">Turn on calls from Oppo</button>
+        </li>
+        <li id="step-code">
+          <strong>Give Oppo your line code.</strong>
+          Copy it and paste it to Oppo on Asusbot, so it knows where to ring.
+          <textarea id="push-code" rows="4" readonly aria-label="Line code"></textarea>
+          <button class="btn btn-small btn-ghost" id="copy-btn" type="button">Copy line code</button>
+        </li>
+      </ol>
+      <p class="note" id="push-note" role="status" aria-live="polite"></p>
+      <p class="details" id="push-details"></p>
+    </div>
+  </dialog>
+</body>
+</html>
