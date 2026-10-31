@@ -2,7 +2,7 @@
 // this file is served to anyone who opens the site.
 export const CONFIG = Object.freeze({
   // ElevenLabs voice agent "Oppo - Operations Manager".
-  agentId: 'agent_8501m5wkxarxfzhrbz4btah9k0g6',
+  agentId: 'agent_2201m69wnj5efak8nspj5g8kf2p0',
 
   // WebSocket looks like normal HTTPS traffic, which is the safest bet on UAE networks.
   connectionType: 'websocket',
